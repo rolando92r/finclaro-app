@@ -14,6 +14,7 @@
   "author": "Augusto Rolando",
   "license": "MIT",
   "dependencies": {
+    "@capacitor/android": "latest",
     "@capacitor/app": "latest",
     "@capacitor/core": "latest",
     "@capacitor/local-notifications": "latest",
