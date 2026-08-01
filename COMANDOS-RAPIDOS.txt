@@ -1,0 +1,64 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🚀 FINCLARO - COMANDOS RÁPIDOS
+═══════════════════════════════════════════════════════════════════════════════
+
+SOLO NECESITAS ESTOS 3 COMANDOS:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ PRIMERA INSTALACIÓN (solo 1 vez):
+
+  cd tu-carpeta-finclaro-app
+  npm install
+
+   ↳ Espera 3-5 minutos (descarga dependencias)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 SINCRONIZAR CAMBIOS (cada vez que modifiques código):
+
+  npx cap sync
+
+   ↳ Actualiza la app con tus cambios
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 COMPILAR y SUBIR A GITHUB (para que GitHub genere el APK):
+
+  git add .
+  git commit -m "Actualización"
+  git push origin main
+
+   ↳ Sube cambios → GitHub compila automáticamente en 20-30 min
+   ↳ Ve a: https://github.com/rolando92r/finclaro-app/actions
+   ↳ Descarga el APK en "Artifacts"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ℹ️ COMANDOS EXTRA (si necesitas):
+
+  npx cap open android          → Abre proyecto en Android Studio
+  npx cap add android           → Agrega plataforma Android (ya hecho)
+  npm install @capacitor/...    → Instala plugin nuevo de Capacitor
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ PROBLEMA: "npm: command not found"
+   → Reinicia Windows después de instalar Node.js
+   → O instala Node.js de nuevo: https://nodejs.org/
+
+❓ PROBLEMA: APK se tarda mucho
+   → Normal, Android Studio tarda 20-30 min la primera vez
+   → Siguiente compilación es más rápida (10-15 min)
+
+❓ PROBLEMA: No veo las notificaciones
+   → En tu Samsung: Configuración → Aplicaciones → FinClaro → Notificaciones → ON
+   → Reinicia el teléfono
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+¡Todo listo! Inicia con el PRIMER comando de arriba. 🚀

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+android/
+/.capacitor/
+capacitor.config.json.bak
+www/
+build/
+*.apk
+*.aab
+.gradle/

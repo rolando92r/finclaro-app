@@ -1,0 +1,15 @@
+{
+  "appId": "com.finclaro.app",
+  "appName": "FinClaro",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#5B5BD6",
+      "sound": "beep"
+    }
+  }
+}
