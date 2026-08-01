@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#5b5bd6">
+<title>FinClaro — Control Financiero</title>
+<style>
+:root{
+  --fondo:linear-gradient(160deg,#5b5bd6 0%,#7c3aed 100%);
+  --tarjeta:#ffffff; --texto:#0f172a; --texto2:#64748b; --texto3:#334155;
+  --borde:#e2e8f0; --input:#f8fafc; --suave:#f1f5f9; --sombra:rgba(0,0,0,.12);
+  --pill:rgba(255,255,255,.85); --pilltxt:#475569;
+}
+body.dark{
+  --fondo:linear-gradient(160deg,#0f0c29 0%,#302b63 60%,#24243e 100%);
+  --tarjeta:#1e1b34; --texto:#f1f5f9; --texto2:#94a3b8; --texto3:#cbd5e1;
+  --borde:#3f3a63; --input:#141225; --suave:#2a2647; --sombra:rgba(0,0,0,.5);
+  --pill:rgba(255,255,255,.12); --pilltxt:#cbd5e1;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{max-width:100%;overflow-x:hidden;width:100%;height:100%}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--fondo);min-height:100vh;color:var(--texto);font-size:16px;line-height:1.5;transition:background .4s;padding-top:max(env(safe-area-inset-top),12px)}
+.safe{padding-left:max(env(safe-area-inset-left),12px);padding-right:max(env(safe-area-inset-right),12px);padding-bottom:max(env(safe-area-inset-bottom),12px)}
+#inicio{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.menu-card{background:var(--tarjeta);border-radius:24px;padding:26px 20px;width:100%;max-width:440px;box-shadow:0 20px 50px var(--sombra);text-align:center;position:relative}
+.tema-btn{position:absolute;top:14px;right:14px;background:var(--suave);border:none;border-radius:50%;width:44px;height:44px;font-size:1.3rem;cursor:pointer}
+.logo-img{width:110px;height:110px;border-radius:50%;margin:0 auto 12px;display:block;box-shadow:0 10px 28px rgba(91,91,214,.5)}
+.nombre{font-size:1.85rem;font-weight:800;color:var(--texto);letter-spacing:-.5px}
+.sub{color:var(--texto2);font-size:.92rem;margin-top:2px}
+.firma-box{margin:16px auto 6px;max-width:280px}
+.firma{font-family:'Segoe Script','Brush Script MT','Lucida Handwriting',cursive;font-size:2.1rem;font-style:italic;font-weight:600;letter-spacing:1px;background:linear-gradient(90deg,#c084fc,#8b5cf6,#6366f1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;transform:rotate(-3deg);display:inline-block}
+.firma-linea{height:2px;margin:2px auto 0;width:82%;background:linear-gradient(90deg,transparent,#8b5cf6 30%,#c084fc 70%,transparent);border-radius:2px}
+.firma-sub{font-size:.68rem;color:var(--texto2);letter-spacing:3px;text-transform:uppercase;margin-top:6px}
+.linea{height:1px;background:var(--borde);margin:16px 0}
+.grid-menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mbtn{border:none;border-radius:16px;padding:17px 8px;color:#fff;cursor:pointer;font-size:.9rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .15s}
+.mbtn:active{transform:scale(.95)}
+.mbtn span{font-size:1.65rem;line-height:1}
+.c1{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.c2{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.c3{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.c4{background:linear-gradient(135deg,#3b82f6,#2563eb)}
+.c5{background:linear-gradient(135deg,#a855f7,#9333ea)}
+.c6{background:linear-gradient(135deg,#475569,#334155)}
+.c7{background:linear-gradient(135deg,#14b8a6,#0d9488);grid-column:1/-1}
+.c8{background:linear-gradient(135deg,#ec4899,#be185d);grid-column:1/-1}
+.c9{background:linear-gradient(135deg,#6366f1,#4338ca);grid-column:1/-1}
+.pie-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;opacity:.85}
+.pie-logo img{width:34px;height:34px;border-radius:50%}
+.pie-logo span{font-family:'Segoe Script','Brush Script MT',cursive;font-size:1.05rem;color:var(--texto2)}
+
+#sistema{display:none;min-height:100vh;padding-bottom:34px}
+.top{background:linear-gradient(135deg,#5b5bd6,#7c3aed);color:#fff;padding:12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.volver{background:rgba(255,255,255,.22);border:none;color:#fff;padding:8px 12px;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer}
+.top-txt{min-width:0;flex:1}
+.top-txt h1{font-size:1.02rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrap{padding:12px}
+.caja{background:var(--tarjeta);border-radius:16px;padding:16px;box-shadow:0 3px 12px var(--sombra);margin-bottom:12px}
+.caja h2{font-size:1.03rem;color:var(--texto);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--suave)}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-size:.84rem;font-weight:700;color:var(--texto3);margin-bottom:5px}
+input,select,textarea{width:100%;padding:11px 12px;border:2px solid var(--borde);border-radius:10px;font-size:16px;font-family:inherit;background:var(--input);color:var(--texto)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#8b5cf6;background:var(--tarjeta)}
+textarea{min-height:88px;resize:vertical}
+.guardar{width:100%;padding:14px;border:none;border-radius:12px;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#5b5bd6,#7c3aed);margin-top:4px}
+.vacio{text-align:center;padding:24px 12px;color:var(--texto2);font-size:.9rem}
+.aviso{background:#fef3c7;color:#92400e;border-radius:10px;padding:10px 12px;font-size:.78rem;margin-top:10px;line-height:1.5}
+body.dark .aviso{background:#3a2f10;color:#fbbf24}
+.ebtn{border:none;background:var(--suave);color:var(--pilltxt);padding:8px 12px;border-radius:9px;font-size:.74rem;font-weight:700;cursor:pointer;margin:4px 4px 0 0}
+.status{padding:12px;border-radius:10px;margin-bottom:10px;font-weight:600;text-align:center}
+.status.success{background:#dcfce7;color:#166534}
+.status.error{background:#fee2e2;color:#dc2626}
+.status.info{background:#e0e7ff;color:#3730a3}
+@media(min-width:600px){.wrap{max-width:900px;margin:0 auto}}
+</style>
+</head>
+<body>
+
+<div id="inicio">
+  <div class="menu-card">
+    <button class="tema-btn" id="temaBtn" onclick="cambiarTema()">🌙</button>
+    <div class="nombre">Augusto Rolando</div>
+    <div class="sub">FinClaro — Control Claro de tu Dinero</div>
+    <div class="firma-box">
+      <div class="firma">Augusto Rolando</div>
+      <div class="firma-linea"></div>
+      <div class="firma-sub">✦ Firma Personal ✦</div>
+    </div>
+    <div class="linea"></div>
+    <div class="grid-menu">
+      <button class="mbtn c1" onclick="abrir('gastos')"><span>📝</span>Gastos</button>
+      <button class="mbtn c2" onclick="abrir('ingresos')"><span>💵</span>Ingresos</button>
+      <button class="mbtn c3" onclick="abrir('deben')"><span>⏳</span>Me Deben</button>
+      <button class="mbtn c4" onclick="abrir('servicios')"><span>📱</span>Servicios</button>
+      <button class="mbtn c5" onclick="abrir('notas')"><span>📔</span>Notas</button>
+      <button class="mbtn c8" onclick="abrir('salud')"><span>💊</span>Salud</button>
+      <button class="mbtn c7" onclick="abrir('historial')"><span>📜</span>Historial</button>
+      <button class="mbtn c9" onclick="abrir('analisis')"><span>📊</span>Análisis</button>
+    </div>
+    <div class="linea"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="ebtn" style="padding:11px;width:100%" onclick="exportar()">💾 Respaldo</button>
+      <button class="ebtn" style="padding:11px;width:100%" onclick="document.getElementById('impFile').click()">📥 Restaurar</button>
+    </div>
+    <input type="file" id="impFile" accept=".json" style="display:none" onchange="importar(event)">
+    <div class="pie-logo"><span style="font-weight:700">A. Rolando</span></div>
+  </div>
+</div>
+
+<div id="sistema">
+  <div class="top safe">
+    <button class="volver" onclick="volver()">← Atrás</button>
+    <div class="top-txt"><h1 id="tituloPag">FinClaro</h1></div>
+    <button class="volver" onclick="cambiarTema()">🌗</button>
+  </div>
+
+  <div class="wrap safe">
+    <div id="status"></div>
+
+    <!-- SALUD (PRIORIDAD: medicinas con notificaciones) -->
+    <div id="p-salud" style="display:none">
+      <div class="caja">
+        <h2>💊 Mis Medicinas</h2>
+        <div id="resumenMed"></div>
+        <h3 style="margin-top:16px;margin-bottom:12px">➕ Agregar medicina</h3>
+        <form onsubmit="addMedicina(event)">
+          <div class="campo"><label>Nombre</label><input type="text" id="m_nombre" placeholder="Losartán, Omeprazol…" required></div>
+          <div class="campo"><label>¿Para qué?</label>
+            <select id="m_tipo" onchange="tipoOtroUI()" required><option value="">Selecciona…</option>
+            <option>❤️ Corazón</option><option>🔥 Inflamación</option><option>🩸 Presión</option>
+            <option>🫧 Protector gástrico</option><option>🌟 Vitaminas</option><option value="otro">✏️ Otro</option></select>
+            <input type="text" id="m_tipoOtro" style="display:none;margin-top:8px" placeholder="Escribe para qué…"></div>
+          <div class="campo"><label>Dosis (cantidad)</label>
+            <select id="m_cant"><option value="0.5">½</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option></select></div>
+          <div class="campo"><label>⏰ Primera hora de hoy (ej: 08:30 AM)</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <select id="mh_h"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
+              <select id="mh_m"><option selected>00</option><option>15</option><option>30</option><option>45</option></select>
+              <select id="mh_ap"><option>AM</option><option>PM</option></select>
+            </div>
+            <button type="button" class="ebtn" style="width:100%;padding:10px;margin-top:8px" onclick="addHora()">➕ Agregar hora</button>
+            <div id="horasTmp" style="margin-top:8px"><span style="font-size:.8rem;color:var(--texto2)">Sin horas</span></div>
+          </div>
+          <div class="campo"><label>Notas</label><input type="text" id="m_notas" placeholder="Con comida, en ayunas…"></div>
+          <button class="guardar">💾 Guardar Medicina</button>
+        </form>
+        <div class="aviso">🔔 <b>IMPORTANTE:</b> Cuando guardes, la app te avisará CADA DÍA a esa hora con sonido, vibración y notificación — ¡incluso con la app cerrada! Medicinas del corazón: úsalo como recordatorio principal.</div>
+      </div>
+      <div id="listaMed"></div>
+
+      <div class="caja" style="margin-top:14px">
+        <h2>🩺 Citas Médicas</h2>
+        <form onsubmit="addCita(event)">
+          <div class="campo"><label>Doctor/Clínica</label><input type="text" id="c_doc" placeholder="Dr. García" required></div>
+          <div class="campo"><label>Especialidad</label><input type="text" id="c_esp" placeholder="Cardiólogo" required></div>
+          <div class="campo"><label>Fecha y hora</label><input type="datetime-local" id="c_fecha" required></div>
+          <div class="campo"><label>Lugar</label><input type="text" id="c_lugar" placeholder="Hospital…"></div>
+          <div class="campo"><label>Notas</label><input type="text" id="c_notas" placeholder="Llevar estudios…"></div>
+          <button class="guardar">📅 Guardar Cita</button>
+        </form>
+      </div>
+      <div id="listaCitas"></div>
+    </div>
+
+    <!-- OTROS MÓDULOS (igual que antes) -->
+    <div id="p-gastos" style="display:none">
+      <div class="caja">
+        <h2>📝 Registrar Gasto</h2>
+        <form onsubmit="addGasto(event)">
+          <div class="campo"><label>Categoría</label>
+            <select id="g_cat" required><option value="">Selecciona…</option>
+            <option>📱 Suscripciones</option><option>🛍️ Compras</option>
+            <option>🍔 Comida</option><option>💊 Medicinas</option><option>📦 Otro</option></select></div>
+          <div class="campo"><label>Monto ($)</label><input type="number" id="g_monto" step="0.01" required></div>
+          <div class="campo"><label>Pagué con</label>
+            <select id="g_pago" required><option value="">Selecciona…</option>
+            <option>PayPal</option><option>Tarjeta</option><option>Efectivo</option></select></div>
+          <div class="campo"><label>Fecha</label><input type="date" id="g_fecha" required></div>
+          <div class="campo"><label>Descripción</label><input type="text" id="g_desc" placeholder="Ej: Netflix…"></div>
+          <button class="guardar">💾 Guardar</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="p-ingresos" style="display:none">
+      <div class="caja">
+        <h2>💵 Registrar Ingreso</h2>
+        <form onsubmit="addIngreso(event)">
+          <div class="campo"><label>Tipo</label>
+            <select id="i_tipo" required><option value="">Selecciona…</option>
+            <option>Trabajo Fijo</option><option>Trabajo Independiente</option></select></div>
+          <div class="campo"><label>Monto ($)</label><input type="number" id="i_monto" step="0.01" required></div>
+          <div class="campo"><label>Me pagaron por</label>
+            <select id="i_metodo" required><option value="">Selecciona…</option>
+            <option>Zelle</option><option>Cash App</option><option>PayPal</option><option>Efectivo</option></select></div>
+          <div class="campo"><label>¿Quién pagó?</label><input type="text" id="i_pagador" required></div>
+          <div class="campo"><label>Fecha</label><input type="date" id="i_fecha" required></div>
+          <button class="guardar">✅ Guardar</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="p-deben" style="display:none">
+      <div class="caja">
+        <h2>⏳ Dinero que me deben</h2>
+        <form onsubmit="addDeben(event)">
+          <div class="campo"><label>Empresa/Persona</label><input type="text" id="d_emp" required></div>
+          <div class="campo"><label>Trabajo</label><input type="text" id="d_trab" required></div>
+          <div class="campo"><label>Monto ($)</label><input type="number" id="d_total" step="0.01" required></div>
+          <div class="campo"><label>Fecha de cobro</label><input type="date" id="d_fecha" required></div>
+          <div class="campo"><label>Notas</label><input type="text" id="d_notas"></div>
+          <button class="guardar">➕ Agregar</button>
+        </form>
+      </div>
+      <div id="listaDeben"></div>
+    </div>
+
+    <div id="p-servicios" style="display:none">
+      <div class="caja">
+        <h2>📱 Mis Servicios</h2>
+        <form onsubmit="addServicio(event)">
+          <div class="campo"><label>Cliente</label><input type="text" id="s_cli" required></div>
+          <div class="campo"><label>Tipo</label><input type="text" id="s_tipo" placeholder="Transportación, Consultoría…" required></div>
+          <div class="campo"><label>Monto ($)</label><input type="number" id="s_monto" step="0.01" required></div>
+          <div class="campo"><label>Frecuencia</label>
+            <select id="s_frec" required><option>Semanal</option><option>Quincenal</option><option>Mensual</option></select></div>
+          <div class="campo"><label>Inicio (fecha/hora)</label><input type="datetime-local" id="s_inicio" required></div>
+          <button class="guardar">➕ Agregar</button>
+        </form>
+      </div>
+      <div id="listaServicios"></div>
+    </div>
+
+    <div id="p-notas" style="display:none">
+      <div class="caja">
+        <h2>📔 Notas y Recordatorios</h2>
+        <form onsubmit="addNota(event)">
+          <div class="campo"><label>Tu nota</label><textarea id="n_txt" placeholder="Escribe algo…" required></textarea></div>
+          <div class="campo"><label>Prioridad</label>
+            <select id="n_prio"><option>Baja</option><option selected>Media</option><option>Alta</option><option>Urgente</option></select></div>
+          <button class="guardar">💾 Guardar</button>
+        </form>
+      </div>
+      <div id="listaNotes"></div>
+    </div>
+
+    <div id="p-historial" style="display:none">
+      <div class="caja">
+        <h2>📜 Historial</h2>
+        <div class="campo"><input type="text" id="hq" placeholder="🔍 Buscar…" oninput="pintarHist()"></div>
+        <div id="listaHist"></div>
+      </div>
+    </div>
+
+    <div id="p-analisis" style="display:none">
+      <div class="caja">
+        <h2>📊 Análisis</h2>
+        <div id="analisis"></div>
+        <button class="guardar" style="margin-top:14px" onclick="descargarPDF()">🖨️ Descargar PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= IMPORTAR CAPACITOR ================= */
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Storage } from '@capacitor/storage';
+import { App } from '@capacitor/app';
+
+/* ================= ESTADO GLOBAL ================= */
+let D = {gastos:[],ingresos:[],deben:[],servicios:[],notas:[],medicinas:[],citas:[]};
+let horasTmp = [];
+
+const $ = id => document.getElementById(id);
+const money = n => '$' + (n || 0).toFixed(2);
+const fmt = f => new Date(f.includes('T') ? f : f + 'T12:00:00').toLocaleDateString('es-MX');
+const fmtH = f => new Date(f).toLocaleDateString('es-MX') + ' ' + new Date(f).toLocaleTimeString('es-MX', {hour: '2-digit', minute: '2-digit'});
+const hoyStr = () => {const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');};
+
+/* ================= TEMA ================= */
+function cambiarTema(){
+  document.body.classList.toggle('dark');
+  const osc = document.body.classList.contains('dark');
+  localStorage.setItem('temaAR', osc ? 'dark' : 'light');
+  $('temaBtn').textContent = osc ? '☀️' : '🌙';
+}
+if(localStorage.getItem('temaAR') === 'dark') document.body.classList.add('dark');
+
+/* ================= NOTIFICACIONES NATIVAS ================= */
+async function iniciarNotificaciones(){
+  try {
+    const perm = await LocalNotifications.requestPermissions();
+    console.log('Permisos:', perm);
+  } catch(e) { console.error('Error permisos:', e); }
+}
+
+async function programarAlertaMedicina(id, nombre, horas){
+  try {
+    // Programar CADA hora como alerta diaria
+    for(let h of horas) {
+      const [hh, mm] = h.split(':');
+      await LocalNotifications.schedule({
+        notifications: [{
+          title: '💊 Hora de tu medicina',
+          body: nombre,
+          id: parseInt(id + hh + mm),
+          schedule: {
+            on: { hour: parseInt(hh), minute: parseInt(mm) },
+            every: 'day'
+          },
+          sound: 'default',
+          vibrate: [300, 100, 300, 100, 500]
+        }]
+      });
+    }
+    mostrarStatus('✅ Alertas programadas para ' + nombre, 'success');
+  } catch(e) {
+    console.error('Error programando alerta:', e);
+    mostrarStatus('⚠️ No se pudo programar la alerta', 'error');
+  }
+}
+
+async function cancelarAlertas(id){
+  try {
+    await LocalNotifications.cancel({ notifications: [{id: parseInt(id)}] });
+  } catch(e) { console.error('Error cancelando:', e); }
+}
+
+/* ================= ALMACENAMIENTO ================= */
+async function cargar(){
+  try {
+    const {value} = await Storage.get({key: 'finanzasAR'});
+    if(value) D = JSON.parse(value);
+  } catch(e) { console.log('Usando datos vacíos'); }
+}
+
+async function guardar(){
+  try {
+    await Storage.set({key: 'finanzasAR', value: JSON.stringify(D)});
+  } catch(e) { console.error('Error guardando:', e); }
+  pintar();
+}
+
+/* ================= INTERFAZ ================= */
+function abrir(s){
+  $('inicio').style.display = 'none';
+  $('sistema').style.display = 'block';
+  mostrarTab(s);
+  window.scrollTo(0, 0);
+}
+
+function volver(){
+  $('sistema').style.display = 'none';
+  $('inicio').style.display = 'flex';
+  window.scrollTo(0, 0);
+}
+
+function mostrarTab(n){
+  document.querySelectorAll('[id^="p-"]').forEach(p => p.style.display = 'none');
+  const T = {gastos:'📝 Gastos',ingresos:'💵 Ingresos',deben:'⏳ Me Deben',servicios:'📱 Servicios',notas:'📔 Notas',salud:'💊 Salud',historial:'📜 Historial',analisis:'📊 Análisis'};
+  $('tituloPag').textContent = T[n] || 'FinClaro';
+  const p = $('p-' + n);
+  if(p) p.style.display = 'block';
+}
+
+function mostrarStatus(msg, tipo = 'info'){
+  const s = $('status');
+  s.innerHTML = '<div class="status ' + tipo + '">' + msg + '</div>';
+  setTimeout(() => s.innerHTML = '', 3000);
+}
+
+/* ================= MEDICINAS (PRIORIDAD) ================= */
+function tipoOtroUI(){
+  $('m_tipoOtro').style.display = $('m_tipo').value === 'otro' ? 'block' : 'none';
+}
+
+function addHora(){
+  let h = +$('mh_h').value;
+  const m = $('mh_m').value;
+  const ap = $('mh_ap').value;
+  if(ap === 'PM' && h !== 12) h += 12;
+  if(ap === 'AM' && h === 12) h = 0;
+  const v = String(h).padStart(2,'0') + ':' + m;
+  if(!horasTmp.includes(v)) horasTmp.push(v);
+  horasTmp.sort();
+  pintarHorasTmp();
+}
+
+function quitarHora(h){
+  horasTmp = horasTmp.filter(x => x !== h);
+  pintarHorasTmp();
+}
+
+function pintarHorasTmp(){
+  $('horasTmp').innerHTML = horasTmp.length
+    ? horasTmp.map(h => '<button type="button" class="ebtn" onclick="quitarHora(\'' + h + '\')">' + h + ' ✖</button>').join('')
+    : '<span style="font-size:.8rem">Sin horas</span>';
+}
+
+function addMedicina(e){
+  e.preventDefault();
+  if(!horasTmp.length) { alert('⏰ Agrega al menos una hora'); return; }
+  const o = {
+    id: Date.now(),
+    nombre: $('m_nombre').value,
+    tipo: $('m_tipo').value === 'otro' ? $('m_tipoOtro').value : $('m_tipo').value,
+    cant: +$('m_cant').value,
+    horas: [...horasTmp],
+    notas: $('m_notas').value
+  };
+  D.medicinas.push(o);
+  // PROGRAMAR ALERTAS NATIVAS
+  programarAlertaMedicina(o.id, o.nombre, o.horas);
+  horasTmp = [];
+  pintarHorasTmp();
+  e.target.reset();
+  guardar();
+}
+
+/* ================= OTROS FORMULARIOS ================= */
+function addGasto(e){e.preventDefault();
+  D.gastos.push({id:Date.now(),cat:$('g_cat').value,monto:+$('g_monto').value,pago:$('g_pago').value,fecha:$('g_fecha').value,desc:$('g_desc').value});
+  e.target.reset();
+  guardar();
+}
+
+function addIngreso(e){e.preventDefault();
+  D.ingresos.push({id:Date.now(),tipo:$('i_tipo').value,monto:+$('i_monto').value,metodo:$('i_metodo').value,pagador:$('i_pagador').value,fecha:$('i_fecha').value});
+  e.target.reset();
+  guardar();
+}
+
+function addDeben(e){e.preventDefault();
+  D.deben.push({id:Date.now(),emp:$('d_emp').value,trab:$('d_trab').value,total:+$('d_total').value,fecha:$('d_fecha').value,notas:$('d_notas').value});
+  e.target.reset();
+  guardar();
+}
+
+function addServicio(e){e.preventDefault();
+  D.servicios.push({id:Date.now(),cli:$('s_cli').value,tipo:$('s_tipo').value,monto:+$('s_monto').value,frec:$('s_frec').value,inicio:new Date($('s_inicio').value).toISOString()});
+  e.target.reset();
+  guardar();
+}
+
+function addNota(e){e.preventDefault();
+  D.notas.push({id:Date.now(),txt:$('n_txt').value,prio:$('n_prio').value,fecha:new Date().toLocaleString('es-MX')});
+  e.target.reset();
+  guardar();
+}
+
+function addCita(e){e.preventDefault();
+  D.citas.push({id:Date.now(),doc:$('c_doc').value,esp:$('c_esp').value,fecha:new Date($('c_fecha').value).toISOString(),lugar:$('c_lugar').value,notas:$('c_notas').value});
+  e.target.reset();
+  guardar();
+}
+
+/* ================= BORRAR ================= */
+function borrar(lista, id){
+  if(confirm('¿Eliminar?')){
+    D[lista] = D[lista].filter(x => x.id !== id);
+    guardar();
+  }
+}
+
+/* ================= PINTADO ================= */
+function pintar(){
+  pintarMedicinas();
+  pintarDeben();
+  pintarServicios();
+  pintarGastos();
+  pintarIngresos();
+  pintarNotas();
+  pintarCitas();
+  pintarHist();
+  pintarAnalisis();
+}
+
+function pintarMedicinas(){
+  const c = $('listaMed');
+  if(!D.medicinas.length){ c.innerHTML = '<div class="vacio">Sin medicinas registradas</div>'; return; }
+  c.innerHTML = D.medicinas.map(m => `
+    <div class="caja" style="margin-top:12px;border-left:5px solid #ec4899">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><b>${m.nombre}</b><br><span style="font-size:.85rem;color:var(--texto2)">${m.tipo} · ${m.cant} ${m.notas ? '· ' + m.notas : ''}</span></div>
+        <button class="ebtn" onclick="borrar('medicinas',${m.id})">🗑️</button>
+      </div>
+      <div style="margin-top:8px;font-size:.8rem">Horas: ${m.horas.join(', ')}</div>
+    </div>`).join('');
+}
+
+function pintarDeben(){
+  const c = $('listaDeben');
+  if(!D.deben.length){ c.innerHTML = '<div class="vacio">Sin registros</div>'; return; }
+  c.innerHTML = D.deben.map(d => `<div class="caja" style="margin-top:12px;border-left:5px solid #f59e0b">
+    <b>${d.emp}</b><br><span style="font-size:.85rem">${d.trab} · Cobro: ${fmt(d.fecha)}</span>
+    <div style="margin-top:8px;font-weight:700;color:#dc2626">${money(d.total)}</div>
+    <button class="ebtn" onclick="borrar('deben',${d.id})">🗑️</button></div>`).join('');
+}
+
+function pintarServicios(){
+  const c = $('listaServicios');
+  if(!D.servicios.length){ c.innerHTML = '<div class="vacio">Sin servicios</div>'; return; }
+  c.innerHTML = D.servicios.map(s => `<div class="caja" style="margin-top:12px;border-left:5px solid #22c55e">
+    <b>${s.cli}</b><br><span style="font-size:.85rem">${s.tipo} · ${s.frec}</span>
+    <div style="margin-top:8px;font-weight:700;color:#16a34a">${money(s.monto)}</div>
+    <button class="ebtn" onclick="borrar('servicios',${s.id})">🗑️</button></div>`).join('');
+}
+
+function pintarGastos(){
+  const c = $('p-gastos');
+  if(!c) return;
+  const total = D.gastos.reduce((s, g) => s + g.monto, 0);
+  let html = '<div class="caja" style="margin-top:12px">';
+  if(D.gastos.length) html += '<div class="status info">Total gastos: ' + money(total) + '</div>';
+  D.gastos.forEach(g => {
+    html += `<div style="padding:10px;background:var(--suave);border-radius:8px;margin-bottom:8px">
+      ${g.cat} · ${money(g.monto)} · ${g.pago} · ${fmt(g.fecha)}
+      <button class="ebtn" onclick="borrar('gastos',${g.id})">🗑️</button></div>`;
+  });
+  html += '</div>';
+  c.innerHTML += html;
+}
+
+function pintarIngresos(){
+  const c = $('p-ingresos');
+  if(!c) return;
+  const total = D.ingresos.reduce((s, i) => s + i.monto, 0);
+  let html = '<div class="caja" style="margin-top:12px">';
+  if(D.ingresos.length) html += '<div class="status success">Total ingresos: ' + money(total) + '</div>';
+  D.ingresos.forEach(i => {
+    html += `<div style="padding:10px;background:var(--suave);border-radius:8px;margin-bottom:8px">
+      ${i.tipo} · ${money(i.monto)} · De: ${i.pagador} · ${fmt(i.fecha)}
+      <button class="ebtn" onclick="borrar('ingresos',${i.id})">🗑️</button></div>`;
+  });
+  html += '</div>';
+  c.innerHTML += html;
+}
+
+function pintarNotas(){
+  const c = $('listaNotes');
+  if(!c) return;
+  if(!D.notas.length){ c.innerHTML = '<div class="vacio">Sin notas</div>'; return; }
+  c.innerHTML = D.notas.map(n => `<div class="caja" style="margin-top:12px">
+    <b>${n.txt}</b><br><span style="font-size:.8rem;color:var(--texto2)">Prioridad: ${n.prio} · ${n.fecha}</span>
+    <button class="ebtn" onclick="borrar('notas',${n.id})">🗑️</button></div>`).join('');
+}
+
+function pintarCitas(){
+  const c = $('listaCitas');
+  if(!c) return;
+  if(!D.citas.length){ c.innerHTML = '<div class="vacio">Sin citas</div>'; return; }
+  c.innerHTML = D.citas.map(ci => `<div class="caja" style="margin-top:12px;border-left:5px solid #3b82f6">
+    <b>🩺 ${ci.doc}</b><br>${ci.esp} · ${fmtH(ci.fecha)}${ci.lugar ? '<br>' + ci.lugar : ''}
+    <button class="ebtn" onclick="borrar('citas',${ci.id})">🗑️</button></div>`).join('');
+}
+
+function pintarHist(){
+  const c = $('listaHist');
+  if(!c) return;
+  const q = ($('hq').value || '').toLowerCase();
+  let all = [...D.gastos.map(g => ({...g, k:'g'})), ...D.ingresos.map(i => ({...i, k:'i'}))].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  if(q) all = all.filter(x => JSON.stringify(x).toLowerCase().includes(q));
+  if(!all.length){ c.innerHTML = '<div class="vacio">' + (q ? 'Sin resultados' : 'Sin movimientos') + '</div>'; return; }
+  c.innerHTML = all.map(x => x.k === 'g'
+    ? `<div style="padding:10px;background:var(--suave);border-radius:8px;margin-bottom:8px;border-left:3px solid #ef4444">
+       <b>${x.cat}</b> · ${money(x.monto)} · ${fmt(x.fecha)}<br><span style="font-size:.8rem;color:var(--texto2)">${x.desc || ''}</span></div>`
+    : `<div style="padding:10px;background:var(--suave);border-radius:8px;margin-bottom:8px;border-left:3px solid #22c55e">
+       <b>💵 ${x.tipo}</b> · ${money(x.monto)} · ${fmt(x.fecha)}<br><span style="font-size:.8rem;color:var(--texto2)">De: ${x.pagador}</span></div>`).join('');
+}
+
+function pintarAnalisis(){
+  const c = $('analisis');
+  if(!c) return;
+  const ing = D.ingresos.reduce((s, i) => s + i.monto, 0);
+  const gas = D.gastos.reduce((s, g) => s + g.monto, 0);
+  const pct = ing ? (gas / ing * 100) : 0;
+  c.innerHTML = `
+    <div class="status info">Ingresos: ${money(ing)}</div>
+    <div class="status error">Gastos: ${money(gas)}</div>
+    <div class="status success">Balance: ${money(ing - gas)}</div>
+    ${pct > 80 ? '<div class="status error">⚠️ Gastaste el ' + pct.toFixed(0) + '% de tus ingresos</div>' : ''}`;
+}
+
+/* ================= RESPALDO ================= */
+function exportar(){
+  const blob = new Blob([JSON.stringify(D, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'finclaro-' + hoyStr() + '.json';
+  a.click();
+  mostrarStatus('💾 Respaldo descargado', 'success');
+}
+
+function importar(ev){
+  const f = ev.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      D = JSON.parse(r.result);
+      guardar();
+      mostrarStatus('✅ Respaldo restaurado', 'success');
+    } catch(e) { mostrarStatus('❌ Archivo inválido', 'error'); }
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+}
+
+function descargarPDF(){
+  alert('Abrirá la impresora. Elige "Guardar como PDF".');
+  window.print();
+}
+
+/* ================= INICIAR ================= */
+async function inicio(){
+  await cargar();
+  await iniciarNotificaciones();
+  const hoy = hoyStr();
+  ['g_fecha', 'i_fecha', 'd_fecha'].forEach(id => {
+    const e = $(id);
+    if(e && !e.value) e.value = hoy;
+  });
+  if(localStorage.getItem('temaAR') === 'dark') document.body.classList.add('dark');
+  pintar();
+  mostrarStatus('✅ FinClaro lista. Medicinas con alertas nativas.', 'success');
+}
+
+document.addEventListener('DOMContentLoaded', inicio);
+</script>
+</body>
+</html>

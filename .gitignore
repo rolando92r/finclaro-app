@@ -5,7 +5,6 @@ dist/
 android/
 /.capacitor/
 capacitor.config.json.bak
-www/
 build/
 *.apk
 *.aab

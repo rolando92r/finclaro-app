@@ -10,7 +10,11 @@
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android"
   },
-  "keywords": ["finanzas", "medicinas", "alertas"],
+  "keywords": [
+    "finanzas",
+    "medicinas",
+    "alertas"
+  ],
   "author": "Augusto Rolando",
   "license": "MIT",
   "dependencies": {
@@ -21,6 +25,7 @@
     "@capacitor/storage": "latest"
   },
   "devDependencies": {
-    "@capacitor/cli": "latest"
+    "@capacitor/cli": "latest",
+    "vite": "^8.2.0"
   }
 }
