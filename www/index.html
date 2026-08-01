@@ -266,7 +266,7 @@ body.dark .aviso{background:#3a2f10;color:#fbbf24}
 <script>
 /* ================= IMPORTAR CAPACITOR ================= */
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Storage } from '@capacitor/storage';
+import { Preferences } from '@capacitor/preferences';
 import { App } from '@capacitor/app';
 
 /* ================= ESTADO GLOBAL ================= */
@@ -331,14 +331,14 @@ async function cancelarAlertas(id){
 /* ================= ALMACENAMIENTO ================= */
 async function cargar(){
   try {
-    const {value} = await Storage.get({key: 'finanzasAR'});
+    const {value} = await Preferences.get({key: 'finanzasAR'});
     if(value) D = JSON.parse(value);
   } catch(e) { console.log('Usando datos vacíos'); }
 }
 
 async function guardar(){
   try {
-    await Storage.set({key: 'finanzasAR', value: JSON.stringify(D)});
+    await Preferences.set({key: 'finanzasAR', value: JSON.stringify(D)});
   } catch(e) { console.error('Error guardando:', e); }
   pintar();
 }
