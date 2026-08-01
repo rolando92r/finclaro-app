@@ -265,9 +265,7 @@ body.dark .aviso{background:#3a2f10;color:#fbbf24}
 
 <script>
 /* ================= IMPORTAR CAPACITOR ================= */
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { Preferences } from '@capacitor/preferences';
-import { App } from '@capacitor/app';
+const { LocalNotifications, Preferences, App } = window.Capacitor ? window.Capacitor.Plugins : {};
 
 /* ================= ESTADO GLOBAL ================= */
 let D = {gastos:[],ingresos:[],deben:[],servicios:[],notas:[],medicinas:[],citas:[]};
