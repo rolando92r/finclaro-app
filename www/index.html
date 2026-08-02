@@ -417,7 +417,7 @@ body.dark .rb{background:#3b2d63;color:#c4b5fd}
           <div class="campo"><label>Notas</label><input type="text" id="m_notas" placeholder="Con comida, en ayunas…"></div>
           <button class="guardar" id="btnMed">💾 Guardar Medicina</button>
         </form>
-        <div class="aviso">🔔 A cada hora la app <b>suena, vibra y notifica</b>; si no marcas la toma, repite cada 15 min (hasta 4 veces). El <b>inventario baja solo</b> con cada toma y te aviso cuando quede poco para que pidas más.</div>
+        <div class="aviso">✅ Los avisos de medicinas funcionan <b>siempre, incluso con la app cerrada</b> (notificación nativa a cada hora, todos los días). Si tienes la app abierta, además suena y vibra y, si no marcas la toma, repite cada 15 min (hasta 4 veces). El <b>inventario baja solo</b> con cada toma y te aviso cuando quede poco para que pidas más.</div>
       </div>
       <div id="listaMed" style="margin-top:14px"></div>
 
@@ -657,8 +657,9 @@ async function programarNotifsMed(m){
     const notifications=m.horas.map(h=>{
       const [hh,mm]=h.split(':');
       return {id:medNotifId(m.id,h),title:'💊 Hora de tu medicina',body:m.nombre+' — '+m.dosis,
+        largeBody:'Toma tu medicina ahora: '+m.nombre+' ('+m.dosis+')',
         schedule:{on:{hour:+hh,minute:+mm},every:'day',allowWhileIdle:true},
-        sound:'default',smallIcon:'ic_stat_icon_config_sample'};});
+        sound:'default',vibrate:[300,100,300],smallIcon:'ic_stat_icon_config_sample'};});
     await LN.schedule({notifications});
   }catch(e){}}
 async function sincronizarNotifsMedicinas(){
