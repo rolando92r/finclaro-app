@@ -253,7 +253,7 @@ body.dark .rb{background:#3b2d63;color:#c4b5fd}
           <div class="campo"><label>Notas</label><input type="text" id="su_notas" placeholder="Plan, correo de la cuenta…"></div>
           <button class="guardar" id="btnSus">💾 Guardar Suscripción</button>
         </form>
-        <div class="aviso">🔔 Te aviso <b>2 días antes</b> del pago y el día que vence. Al pagar toca <b>"✓ Pagué"</b>: registra el gasto y avanza la fecha solo.</div>
+        <div class="aviso">✅ Te aviso <b>siempre, incluso con la app cerrada</b> (notificación nativa): 2 días antes del pago y el día que vence. Al pagar toca <b>"✓ Pagué"</b>: registra el gasto y avanza la fecha solo.</div>
       </div>
       <div id="listaSus" style="margin-top:14px"></div>
     </div>
@@ -332,7 +332,7 @@ body.dark .rb{background:#3b2d63;color:#c4b5fd}
           <div class="campo"><label>Notas / contacto</label><textarea id="s_notas"></textarea></div>
           <button class="guardar" id="btnServicio">➕ Agregar Servicio</button>
         </form>
-        <div class="aviso">📌 El <b>próximo cobro se calcula solo</b>. Cuando la fecha llega, la app te <b>alerta</b>. Al cobrar toca <b>"✓ Cobré"</b>: registra el ingreso con el método correcto y avanza la fecha.</div>
+        <div class="aviso">✅ El <b>próximo cobro se calcula solo</b>. Cuando la fecha llega, te <b>alerta siempre, incluso con la app cerrada</b> (notificación nativa). Al cobrar toca <b>"✓ Cobré"</b>: registra el ingreso con el método correcto y avanza la fecha.</div>
       </div>
       <div id="listaServicios" style="margin-top:14px"></div>
     </div>
@@ -366,7 +366,7 @@ body.dark .rb{background:#3b2d63;color:#c4b5fd}
           <button class="guardar" id="btnNota">💾 Guardar Nota</button>
         </form>
         <button class="ebtn" style="width:100%;margin-top:10px;padding:11px" onclick="pedirPermiso()">🔔 Activar notificaciones del sistema</button>
-        <div class="aviso">⚠️ Los avisos suenan y notifican <b>mientras la app esté abierta</b> (aunque estés en otra pestaña o con la pantalla apagada un rato). Si la cierras del todo, al reabrirla verás lo vencido en <b>rojo</b> y sonará el aviso pendiente. Para avisos de vida o muerte, usa también la alarma del teléfono.</div>
+        <div class="aviso">✅ Los avisos de notas funcionan <b>siempre, incluso con la app cerrada</b> (notificación nativa a la hora exacta que elijas). Si además tienes la app abierta, suena y vibra al llegar el momento.</div>
       </div>
       <div style="margin-top:14px">
         <div class="filtros" id="filtrosNotas">
@@ -547,9 +547,11 @@ function avanzarFecha(iso,frec){const d=new Date(iso);
   return d.toISOString();}
 function addSus(e){e.preventDefault();
   const o={nombre:$('su_nombre').value,monto:+$('su_monto').value,pago:$('su_pago').value,frec:$('su_frec').value,prox:new Date($('su_prox').value+'T12:00:00').toISOString(),notas:$('su_notas').value};
-  if(ED.sus){const s=D.sus.find(x=>x.id===ED.sus);if(s){Object.assign(s,o);s.av2d=false;s.avV=false;}ED.sus=0;$('btnSus').textContent='💾 Guardar Suscripción';}
-  else D.sus.push(Object.assign({id:Date.now(),av2d:false,avV:false},o));
-  e.target.reset();hoy();guardar();alert('✅ Suscripción guardada');}
+  let susRef=null;
+  if(ED.sus){const s=D.sus.find(x=>x.id===ED.sus);if(s){Object.assign(s,o);s.av2d=false;s.avV=false;susRef=s;}ED.sus=0;$('btnSus').textContent='💾 Guardar Suscripción';}
+  else{susRef=Object.assign({id:Date.now(),av2d:false,avV:false},o);D.sus.push(susRef);}
+  e.target.reset();hoy();guardar();alert('✅ Suscripción guardada');
+  if(susRef)programarNotifsSus(susRef);}
 function editarSus(id){const s=D.sus.find(x=>x.id===id);if(!s)return;
   ED.sus=id;irForm('gastos');
   $('su_nombre').value=s.nombre;$('su_monto').value=s.monto;$('su_pago').value=s.pago;$('su_frec').value=s.frec;
@@ -559,7 +561,7 @@ function pagueSus(id){const s=D.sus.find(x=>x.id===id);if(!s)return;
   if(!confirm('¿Registrar pago de '+money(s.monto)+' de '+s.nombre+'?'))return;
   D.gastos.push({id:Date.now(),cat:'📱 Suscripciones',monto:s.monto,pago:s.pago,fecha:hoyStr(),desc:s.nombre});
   s.prox=avanzarFecha(s.prox,s.frec);s.av2d=false;s.avV=false;
-  guardar();alert('✅ Pago registrado. Próximo: '+fmt(s.prox));}
+  guardar();programarNotifsSus(s);alert('✅ Pago registrado. Próximo: '+fmt(s.prox));}
 
 /* ================= INGRESOS ================= */
 function addIngreso(e){e.preventDefault();
@@ -577,9 +579,11 @@ function editarIngreso(id){const g=D.ingresos.find(x=>x.id===id);if(!g)return;
 function addDeben(e){e.preventDefault();
   const t=+$('d_total').value,a=+$('d_adel').value||0;
   const o={emp:$('d_emp').value,trab:$('d_trab').value,total:t,adel:a,resta:t-a,metodoAdel:$('d_metodo').value,tarifa:$('d_tarifa').value,fecha:$('d_fecha').value,recordar:$('d_recordar').value?new Date($('d_recordar').value).toISOString():'',notas:$('d_notas').value};
-  if(ED.deben){const d=D.deben.find(x=>x.id===ED.deben);if(d){Object.assign(d,o);d.avR=false;}ED.deben=0;$('btnDeben').textContent='➕ Agregar';}
-  else D.deben.push(Object.assign({id:Date.now(),avR:false},o));
-  e.target.reset();hoy();guardar();alert('✅ Registrado');}
+  let debRef=null;
+  if(ED.deben){const d=D.deben.find(x=>x.id===ED.deben);if(d){Object.assign(d,o);d.avR=false;debRef=d;}ED.deben=0;$('btnDeben').textContent='➕ Agregar';}
+  else{debRef=Object.assign({id:Date.now(),avR:false},o);D.deben.push(debRef);}
+  e.target.reset();hoy();guardar();alert('✅ Registrado');
+  if(debRef)programarNotifDeben(debRef);}
 function editarDeben(id){const d=D.deben.find(x=>x.id===id);if(!d)return;
   ED.deben=id;irForm('deben');
   $('d_emp').value=d.emp;$('d_trab').value=d.trab;$('d_total').value=d.total;$('d_adel').value=d.adel;
@@ -590,15 +594,18 @@ function debenPagado(id){const p=D.deben.find(x=>x.id===id);if(!p)return;
   if(!confirm('¿'+p.emp+' te pagó los '+money(p.resta)+' restantes? Se registrará como ingreso.'))return;
   D.ingresos.push({id:Date.now(),tipo:'Trabajo Independiente',monto:p.resta,completo:'Completo',falta:0,metodo:'Otro',pagador:p.emp,desc:'Pago de deuda: '+p.trab,fecha:hoyStr()});
   D.deben=D.deben.filter(x=>x.id!==id);
+  cancelarNotifDeben(id);
   guardar();alert('✅ ¡Cobrado! Movido a Ingresos.');}
 
 /* ================= SERVICIOS ================= */
 function addServicio(e){e.preventDefault();
   const ini=new Date($('s_inicio').value).toISOString();
   const o={cli:$('s_cli').value,tipo:$('s_tipo').value,monto:+$('s_monto').value,metodo:$('s_metodo').value,frec:$('s_frec').value,inicio:ini,estado:$('s_estado').value,notas:$('s_notas').value};
-  if(ED.servicios){const s=D.servicios.find(x=>x.id===ED.servicios);if(s){const keepProx=s.prox;Object.assign(s,o);s.prox=keepProx;s.avV=false;}ED.servicios=0;$('btnServicio').textContent='➕ Agregar Servicio';alert('✅ Servicio actualizado');}
-  else{D.servicios.push(Object.assign({id:Date.now(),prox:avanzarFecha(ini,$('s_frec').value),avV:false},o));alert('✅ Servicio guardado. Próximo cobro calculado.');}
-  e.target.reset();hoy();guardar();}
+  let servRef=null;
+  if(ED.servicios){const s=D.servicios.find(x=>x.id===ED.servicios);if(s){const keepProx=s.prox;Object.assign(s,o);s.prox=keepProx;s.avV=false;servRef=s;}ED.servicios=0;$('btnServicio').textContent='➕ Agregar Servicio';alert('✅ Servicio actualizado');}
+  else{servRef=Object.assign({id:Date.now(),prox:avanzarFecha(ini,$('s_frec').value),avV:false},o);D.servicios.push(servRef);alert('✅ Servicio guardado. Próximo cobro calculado.');}
+  e.target.reset();hoy();guardar();
+  if(servRef)programarNotifServicio(servRef);}
 function editarServicio(id){const s=D.servicios.find(x=>x.id===id);if(!s)return;
   ED.servicios=id;irForm('servicios');
   $('s_cli').value=s.cli;$('s_tipo').value=s.tipo;$('s_monto').value=s.monto;$('s_metodo').value=s.metodo||'';
@@ -608,7 +615,7 @@ function cobreServicio(id){const s=D.servicios.find(x=>x.id===id);if(!s)return;
   if(!confirm('¿Registrar cobro de '+money(s.monto)+' de '+s.cli+'?'))return;
   D.ingresos.push({id:Date.now(),tipo:'Trabajo Independiente',monto:s.monto,completo:'Completo',falta:0,metodo:s.metodo||'Otro',pagador:s.cli,desc:'Cobro de servicio: '+s.tipo,fecha:hoyStr()});
   s.prox=avanzarFecha(s.prox,s.frec);s.estado='Activo';s.avV=false;
-  guardar();alert('✅ Ingreso registrado. Próximo cobro: '+fmtH(s.prox));}
+  guardar();programarNotifServicio(s);alert('✅ Ingreso registrado. Próximo cobro: '+fmtH(s.prox));}
 
 /* ================= NOTAS ================= */
 function setAviso(n,u){
@@ -619,14 +626,17 @@ function leerAvisoCustom(){const c=+$('n_cant').value;if(!c)return avisoMs;
   const u=$('n_uni').value;return u==='m'?c*60000:u==='h'?c*3600000:c*86400000;}
 function addNota(e){e.preventDefault();
   const ms=leerAvisoCustom();
+  let notaRef=null;
   if(ED.notas){const n=D.notas.find(x=>x.id===ED.notas);
     if(n){n.tipo=$('n_tipo').value;n.prio=$('n_prio').value;n.txt=$('n_txt').value;
-      if(ms>0){n.remindAt=Date.now()+ms;n.avisada=false;n.estado='Recordar';}}
+      if(ms>0){n.remindAt=Date.now()+ms;n.avisada=false;n.estado='Recordar';}
+      notaRef=n;}
     ED.notas=0;$('btnNota').textContent='💾 Guardar Nota';alert('✅ Nota actualizada');}
   else{const n={id:Date.now(),tipo:$('n_tipo').value,prio:$('n_prio').value,txt:$('n_txt').value,estado:ms>0?'Recordar':'Falta',fecha:new Date().toLocaleString('es-MX'),remindAt:ms>0?Date.now()+ms:0,avisada:false};
-    D.notas.push(n);alert(ms>0?'✅ Nota guardada. Te avisaré '+fmtH(new Date(n.remindAt)):'✅ Nota guardada');}
+    D.notas.push(n);notaRef=n;alert(ms>0?'✅ Nota guardada. Te avisaré '+fmtH(new Date(n.remindAt)):'✅ Nota guardada');}
   avisoMs=0;$('avisoTxt').textContent='Sin aviso programado';
-  e.target.reset();guardar();}
+  e.target.reset();guardar();
+  if(notaRef)programarNotifNota(notaRef);}
 function editarNota(id){const n=D.notas.find(x=>x.id===id);if(!n)return;
   ED.notas=id;irForm('notas');
   $('n_tipo').value=n.tipo;$('n_prio').value=n.prio;$('n_txt').value=n.txt;
@@ -637,9 +647,9 @@ function posponerNota(id,min){
   const n=D.notas.find(x=>x.id===id);if(!n)return;
   n.remindAt=Date.now()+min*60000;n.avisada=false;
   if(n.estado==='Terminada'||n.estado==='Falta')n.estado='Recordar';
-  guardar();alert('⏰ Te lo recuerdo a las '+new Date(n.remindAt).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}));}
+  guardar();programarNotifNota(n);alert('⏰ Te lo recuerdo a las '+new Date(n.remindAt).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}));}
 function cancelarAviso(id){const n=D.notas.find(x=>x.id===id);if(!n)return;
-  n.remindAt=0;n.avisada=false;guardar();}
+  n.remindAt=0;n.avisada=false;guardar();cancelarNotifUnica(notaNotifId(id));}
 
 /* ================= NOTIFICACIONES NATIVAS (Capacitor) ================= */
 const CapPlugins = (window.Capacitor && window.Capacitor.Plugins) ? window.Capacitor.Plugins : {};
@@ -662,12 +672,65 @@ async function programarNotifsMed(m){
         sound:'default',vibrate:[300,100,300],smallIcon:'ic_stat_icon_config_sample'};});
     await LN.schedule({notifications});
   }catch(e){}}
-async function sincronizarNotifsMedicinas(){
-  const LN=CapPlugins.LocalNotifications;if(!LN)return;
-  for(const m of D.medicinas){await programarNotifsMed(m);}}
 async function pedirPermisoNativo(){
   const LN=CapPlugins.LocalNotifications;if(!LN)return;
   try{await LN.requestPermissions();}catch(e){}}
+
+/* ---- Notificaciones de un solo disparo (notas, sus, servicios, deben, citas) ---- */
+function strHash(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}return Math.abs(h)%2000000000;}
+const CATCHUP_MS=12*3600000; /* si el momento ya pasó hace menos de 12h, avisa ahora igual */
+async function programarNotifUnica(id,title,body,atMs){
+  const LN=CapPlugins.LocalNotifications;if(!LN)return;
+  try{
+    await LN.cancel({notifications:[{id}]});
+    if(!atMs)return;
+    const now=Date.now();
+    if(atMs<now-CATCHUP_MS)return;
+    const at=new Date(Math.max(atMs,now+3000));
+    await LN.schedule({notifications:[{id,title,body,schedule:{at,allowWhileIdle:true},sound:'default',vibrate:[300,100,300]}]});
+  }catch(e){}}
+async function cancelarNotifUnica(id){
+  const LN=CapPlugins.LocalNotifications;if(!LN)return;
+  try{await LN.cancel({notifications:[{id}]});}catch(e){}}
+
+function notaNotifId(id){return strHash('nota_'+id);}
+async function programarNotifNota(n){
+  if(!n||!n.remindAt||n.estado==='Terminada'){await cancelarNotifUnica(notaNotifId(n?n.id:0));return;}
+  await programarNotifUnica(notaNotifId(n.id),'🔔 Recordatorio — FinClaro',n.txt,n.remindAt);}
+
+function susNotifId(id,which){return strHash('sus_'+id+'_'+which);}
+async function programarNotifsSus(s){
+  if(!s)return;const f=new Date(s.prox).getTime();
+  await programarNotifUnica(susNotifId(s.id,'2d'),'🔁 Suscripción por pagar',s.nombre+' — '+money(s.monto)+' el '+fmt(s.prox),f-2*86400000);
+  await programarNotifUnica(susNotifId(s.id,'day'),'⚠️ Suscripción vence hoy',s.nombre+' — '+money(s.monto),f);}
+async function cancelarNotifsSus(id){await cancelarNotifUnica(susNotifId(id,'2d'));await cancelarNotifUnica(susNotifId(id,'day'));}
+
+function servNotifId(id){return strHash('serv_'+id);}
+async function programarNotifServicio(s){
+  if(!s)return;
+  await programarNotifUnica(servNotifId(s.id),'💼 Toca cobrar',s.cli+' — '+money(s.monto),new Date(s.prox).getTime());}
+async function cancelarNotifServicio(id){await cancelarNotifUnica(servNotifId(id));}
+
+function debenNotifId(id){return strHash('deben_'+id);}
+async function programarNotifDeben(d){
+  if(!d||!d.recordar){await cancelarNotifUnica(debenNotifId(d?d.id:0));return;}
+  await programarNotifUnica(debenNotifId(d.id),'⏳ Recordatorio de cobro',d.emp+' te debe '+money(d.resta),new Date(d.recordar).getTime());}
+async function cancelarNotifDeben(id){await cancelarNotifUnica(debenNotifId(id));}
+
+function citaNotifId(id){return strHash('cita_'+id);}
+async function programarNotifCita(c){
+  if(!c)return;const f=new Date(c.fecha).getTime();
+  await programarNotifUnica(citaNotifId(c.id),'🩺 Cita médica próxima',c.doc+' ('+c.esp+') — '+fmtH(c.fecha),f-c.antic);}
+async function cancelarNotifCita(id){await cancelarNotifUnica(citaNotifId(id));}
+
+async function sincronizarTodasNotifs(){
+  const LN=CapPlugins.LocalNotifications;if(!LN)return;
+  for(const m of D.medicinas)await programarNotifsMed(m);
+  for(const n of D.notas)await programarNotifNota(n);
+  for(const s of D.sus)await programarNotifsSus(s);
+  for(const s of D.servicios)await programarNotifServicio(s);
+  for(const d of D.deben)await programarNotifDeben(d);
+  for(const c of D.citas)await programarNotifCita(c);}
 
 /* ================= SALUD: MEDICINAS ================= */
 function tipoOtroUI(){$('m_tipoOtro').style.display=$('m_tipo').value==='otro'?'block':'none';}
@@ -732,9 +795,11 @@ function recargarStock(id){const m=D.medicinas.find(x=>x.id===id);if(!m)return;
 /* ================= CITAS ================= */
 function addCita(e){e.preventDefault();
   const o={doc:$('c_doc').value,esp:$('c_esp').value,fecha:new Date($('c_fecha').value).toISOString(),lugar:$('c_lugar').value,antic:+$('c_antic').value,notas:$('c_notas').value};
-  if(ED.citas){const c=D.citas.find(x=>x.id===ED.citas);if(c){Object.assign(c,o);c.avisada=false;}ED.citas=0;$('btnCita').textContent='📅 Guardar Cita';alert('✅ Cita actualizada');}
-  else{D.citas.push(Object.assign({id:Date.now(),avisada:false},o));alert('✅ Cita guardada. Te avisaré con anticipación.');}
-  e.target.reset();guardar();}
+  let citaRef=null;
+  if(ED.citas){const c=D.citas.find(x=>x.id===ED.citas);if(c){Object.assign(c,o);c.avisada=false;citaRef=c;}ED.citas=0;$('btnCita').textContent='📅 Guardar Cita';alert('✅ Cita actualizada');}
+  else{citaRef=Object.assign({id:Date.now(),avisada:false},o);D.citas.push(citaRef);alert('✅ Cita guardada. Te avisaré con anticipación.');}
+  e.target.reset();guardar();
+  if(citaRef)programarNotifCita(citaRef);}
 function editarCita(id){const c=D.citas.find(x=>x.id===id);if(!c)return;
   ED.citas=id;irForm('salud');
   $('c_doc').value=c.doc;$('c_esp').value=c.esp;$('c_fecha').value=dtLocal(c.fecha);
@@ -745,8 +810,8 @@ function posponerCita(id){const c=D.citas.find(x=>x.id===id);if(!c)return;
   const v=prompt('📅 ¿Cuántos días la pospongo? (puedes usar 0.5 para medio día)');
   if(!v||!+v)return;
   c.fecha=new Date(new Date(c.fecha).getTime()+(+v)*86400000).toISOString();
-  c.avisada=false;guardar();alert('✅ Cita reprogramada: '+fmtH(c.fecha));}
-function citaLista(id){if(confirm('¿Marcar esta cita como completada? Se quitará de la lista.')){D.citas=D.citas.filter(c=>c.id!==id);guardar();}}
+  c.avisada=false;guardar();programarNotifCita(c);alert('✅ Cita reprogramada: '+fmtH(c.fecha));}
+function citaLista(id){if(confirm('¿Marcar esta cita como completada? Se quitará de la lista.')){cancelarNotifCita(id);D.citas=D.citas.filter(c=>c.id!==id);guardar();}}
 
 /* ================= NOTIFICACIONES ================= */
 function pedirPermiso(){
@@ -825,8 +890,13 @@ setInterval(chequearAvisos,5000);
 /* ================= ACCIONES GENERALES ================= */
 function borrar(lista,id){if(confirm('¿Eliminar?')){
   if(lista==='medicinas'){const m=D.medicinas.find(x=>x.id===id);if(m)cancelarNotifsMed(m);}
+  else if(lista==='notas')cancelarNotifUnica(notaNotifId(id));
+  else if(lista==='sus')cancelarNotifsSus(id);
+  else if(lista==='servicios')cancelarNotifServicio(id);
+  else if(lista==='deben')cancelarNotifDeben(id);
+  else if(lista==='citas')cancelarNotifCita(id);
   D[lista]=D[lista].filter(x=>x.id!==id);guardar();}}
-function cambiarEstado(id,est){const n=D.notas.find(x=>x.id===id);if(n){n.estado=est;if(est==='Terminada')n.remindAt=0;guardar();}}
+function cambiarEstado(id,est){const n=D.notas.find(x=>x.id===id);if(n){n.estado=est;if(est==='Terminada')n.remindAt=0;guardar();programarNotifNota(n);}}
 function filtrar(f,btn){filtroNota=f;document.querySelectorAll('#filtrosNotas .fbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');pintarNotas();}
 function filtroAn(f,btn){fAn=f;document.querySelectorAll('[data-f]').forEach(b=>b.classList.remove('on'));btn.classList.add('on');pintarAnalisis();}
 
@@ -1205,7 +1275,7 @@ cargar();procesarCortes();hoy();pintar();chequearAvisos();
 if(document.body.classList.contains('dark'))$('temaBtn').textContent='☀️';
 $('autoBkSel').value=String(D.autoBk.on||0);
 $('autoBkInfo').style.display=D.autoBk.on?'block':'none';
-pedirPermisoNativo().then(sincronizarNotifsMedicinas);
+pedirPermisoNativo().then(sincronizarTodasNotifs);
 </script>
 </body>
 </html>
