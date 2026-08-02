@@ -33,6 +33,18 @@ jobs:
       - name: Generate app icons
         run: npx @capacitor/assets generate --android
 
+      - name: Apply native patches (exact-alarm permission + notification icon)
+        run: |
+          # android/ se regenera desde cero en cada build (esta en .gitignore),
+          # asi que los cambios nativos que necesita la app (permiso de alarma
+          # exacta para que las notificaciones de medicinas suenen a tiempo con
+          # la app cerrada, e icono de notificacion) se inyectan aqui en vez de
+          # editarse directo en android/, que no persiste entre builds.
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />#' "$MANIFEST"
+          grep -c "SCHEDULE_EXACT_ALARM" "$MANIFEST"
+          cp -r native-patches/res/* android/app/src/main/res/
+
       - name: Sync Capacitor
         run: npx cap sync
       

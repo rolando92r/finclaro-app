@@ -653,6 +653,16 @@ function cancelarAviso(id){const n=D.notas.find(x=>x.id===id);if(!n)return;
 
 /* ================= NOTIFICACIONES NATIVAS (Capacitor) ================= */
 const CapPlugins = (window.Capacitor && window.Capacitor.Plugins) ? window.Capacitor.Plugins : {};
+
+/* ---- Botón "Atrás" de Android ---- */
+if(CapPlugins.App){
+  CapPlugins.App.addListener('backButton',()=>{
+    const activo=document.querySelector('.tb.on');
+    const t=activo?activo.dataset.t:'panel';
+    if(t!=='panel'){tab('panel');window.scrollTo({top:0,behavior:'smooth'});}
+    else if(confirm('¿Salir de FinClaro?')){CapPlugins.App.exitApp();}
+  });
+}
 function medNotifId(medId,hora){
   const [hh,mm]=hora.split(':');
   const base=(medId%100000)*10000+(+hh)*100+(+mm);
@@ -814,9 +824,34 @@ function posponerCita(id){const c=D.citas.find(x=>x.id===id);if(!c)return;
 function citaLista(id){if(confirm('¿Marcar esta cita como completada? Se quitará de la lista.')){cancelarNotifCita(id);D.citas=D.citas.filter(c=>c.id!==id);guardar();}}
 
 /* ================= NOTIFICACIONES ================= */
-function pedirPermiso(){
+async function pedirPermiso(){
+  const LN=CapPlugins.LocalNotifications;
+  if(LN){
+    try{
+      const r=await LN.requestPermissions();
+      if(r.display!=='granted'){alert('❌ Permiso denegado. Actívalo en Ajustes > Apps > FinClaro > Notificaciones');return;}
+      await asegurarAlarmaExacta();
+      alert('✅ Notificaciones activadas');
+      await sincronizarTodasNotifs();
+    }catch(e){alert('❌ No se pudo pedir permiso: '+e);}
+    return;}
   if(!('Notification' in window)){alert('Tu navegador no soporta notificaciones');return;}
   Notification.requestPermission().then(p=>alert(p==='granted'?'✅ Notificaciones activadas':'❌ Permiso denegado'));}
+/* Sin este permiso, Android 12+ agrupa/retrasa las alarmas diarias (Doze),
+   asi que las notificaciones de medicinas pueden no sonar o llegar tarde
+   con la app cerrada. Sin la solicitud explicita, muchos usuarios nunca
+   activan este permiso porque esta escondido en Ajustes. */
+async function asegurarAlarmaExacta(){
+  const LN=CapPlugins.LocalNotifications;
+  if(!LN||!LN.checkExactNotificationSetting)return;
+  try{
+    const estado=await LN.checkExactNotificationSetting();
+    if(estado.exact_alarm!=='granted'){
+      if(confirm('Para que las alertas de medicinas suenen puntuales aunque la app esté cerrada, Android pide activar "Alarmas y recordatorios". ¿Abrir esa pantalla ahora?')){
+        await LN.changeExactNotificationSetting();
+      }
+    }
+  }catch(e){}}
 function beep(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();
   [0,.25,.5].forEach(t=>{const o=ctx.createOscillator(),g=ctx.createGain();
   o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=.3;
