@@ -528,6 +528,9 @@ let MEDICINA_FOTOS={frontal:null,trasera:null};
 const MEDICINA_FOTO_DIR='medicinas';
 let PRIV_WARNED=false;
 
+/* Registra solo un código técnico seguro (nunca URI, nombre de archivo, foto o datos médicos) */
+function logFotoError(codigo){console.error('[FinClaro][FOTO] '+codigo);}
+
 function escapeHtml(value){
   const text = String(value ?? '');
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
@@ -607,7 +610,7 @@ async function cargarFotoMedicamentoEnVistaPrevia(foto, imgEl){
     const result = await FS.readFile({path:normalized.path, directory:dir});
     if(result && result.data){imgEl.src = 'data:' + (normalized.mimeType || 'image/jpeg') + ';base64,' + result.data;}
   }catch(e){
-    console.error('No se pudo leer la foto de medicina', e);
+    logFotoError('PHOTO_READ_FAILED');
     imgEl.src='';
   }
 }
@@ -642,15 +645,21 @@ function limpiarFotosMedicamentoFormulario(){
   renderPreviewFotoMedicamento('trasera', null);
 }
 async function guardarFotoMedicinaEnPrivado(tipo, fotoResult){
-  if(!fotoResult || !fotoResult.base64String){throw new Error('La foto no tiene contenido válido.');}
+  if(!fotoResult || !fotoResult.base64String){const err=new Error('PHOTO_SAVE_FAILED');err.code='PHOTO_SAVE_FAILED';throw err;}
   const FS = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) || null;
-  if(!FS){throw new Error('No está disponible el almacenamiento privado de archivos en este dispositivo.');}
+  if(!FS){const err=new Error('PHOTO_SAVE_FAILED');err.code='PHOTO_SAVE_FAILED';throw err;}
   const mime = fotoResult.format || 'jpeg';
   const ext = mime === 'png' ? 'png' : 'jpg';
   const fileName = 'med_' + Date.now() + '_' + tipo + '.' + ext;
   const dir = (window.Capacitor && window.Capacitor.FilesystemDirectory) ? window.Capacitor.FilesystemDirectory.Data : 'DATA';
   const relativePath = MEDICINA_FOTO_DIR + '/' + fileName;
-  await FS.writeFile({path:relativePath, data:fotoResult.base64String, directory:dir, encoding:(window.Capacitor && window.Capacitor.Encoding && window.Capacitor.Encoding.Base64) ? window.Capacitor.Encoding.Base64 : 'base64'});
+  try{
+    /* recursive:true crea la carpeta privada 'medicinas' si aún no existe (causa real del fallo de guardado) */
+    await FS.writeFile({path:relativePath, data:fotoResult.base64String, directory:dir, recursive:true});
+  }catch(e){
+    logFotoError('PHOTO_SAVE_FAILED');
+    const err=new Error('PHOTO_SAVE_FAILED');err.code='PHOTO_SAVE_FAILED';throw err;
+  }
   const photoMeta = {path:relativePath,name:fileName,mimeType:'image/' + (mime==='png'?'png':'jpeg'),dataUrl:'data:image/' + (mime==='png'?'png':'jpeg') + ';base64,' + fotoResult.base64String};
   return photoMeta;
 }
@@ -663,7 +672,7 @@ async function borrarArchivoFotoPrivada(foto){
     const dir = (window.Capacitor && window.Capacitor.FilesystemDirectory) ? window.Capacitor.FilesystemDirectory.Data : 'DATA';
     await FS.deleteFile({path:ref.path, directory:dir});
   }catch(e){
-    console.error('No se pudo borrar la foto del archivo', e);
+    logFotoError('PHOTO_DELETE_FAILED');
   }
 }
 async function seleccionarFotoMedicamento(tipo, source){
@@ -687,15 +696,16 @@ async function seleccionarFotoMedicamento(tipo, source){
       source: source === 'camera' ? (CameraSource ? CameraSource.Camera : 'CAMERA') : (CameraSource ? CameraSource.Photos : 'PHOTOS'),
       saveToGallery: false
     });
-    if(!photo || !photo.base64String){alert('No se pudo obtener la foto.');return;}
+    if(!photo || !photo.base64String){logFotoError('PHOTO_PICK_FAILED');alert('No se pudo obtener la foto. Inténtalo de nuevo.');return;}
     if(MEDICINA_FOTOS[tipo])await borrarArchivoFotoPrivada(MEDICINA_FOTOS[tipo]);
     const saved = await guardarFotoMedicinaEnPrivado(tipo, photo);
     MEDICINA_FOTOS[tipo] = saved;
     renderPreviewFotoMedicamento(tipo, saved);
   }catch(e){
     if(String((e && e.message) || '').toLowerCase().includes('cancel'))return;
-    console.error('Error al seleccionar foto de medicina', e);
-    alert('No se pudo guardar la foto en almacenamiento privado. Inténtalo de nuevo.');
+    const codigo = (e && e.code) || 'PHOTO_SAVE_FAILED';
+    logFotoError(codigo);
+    alert('No se pudo guardar la foto en almacenamiento privado (código: '+codigo+'). Inténtalo de nuevo.');
   }
 }
 function abrirFotoMedicamentoPorId(medId, lado){
