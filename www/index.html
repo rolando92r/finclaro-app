@@ -195,6 +195,14 @@ body.dark .rb{background:#3b2d63;color:#c4b5fd}
         <option value="240">Cada 4 horas</option>
       </select>
     </div>
+    <div class="campo" style="margin-top:10px;text-align:left">
+      <label style="display:flex;gap:8px;align-items:center;cursor:pointer">
+        <input type="checkbox" id="capShotToggle" onchange="setBloqCapturas()" style="width:auto;transform:scale(1.1)">
+        <span>🔒 Bloquear capturas de pantalla</span>
+      </label>
+      <div style="font-size:.76rem;color:var(--texto2);margin-top:6px;line-height:1.45">Si activas esta opción, Android bloqueará capturas y también compartir capturas de FinClaro.</div>
+      <div style="font-size:.76rem;color:var(--texto2);margin-top:4px;line-height:1.45">La protección en aplicaciones recientes queda activa por defecto.</div>
+    </div>
     <div class="aviso" id="autoBkInfo" style="display:none;text-align:left">📂 Los respaldos se descargan solos a tu carpeta <b>Descargas</b> (solo cuando hay cambios). Para la nube: sube la carpeta a <b>Google Drive</b>, o instala <b>"Autosync for Google Drive"</b> (Play Store) para que se suban solos.<br><br><b>Nota:</b> Las fotos de medicamentos permanecen solamente en este teléfono y no se incluyen en el respaldo JSON actual.</div>
     <div class="pie-logo"><img id="logoPie" alt=""><span>A. Rolando</span></div>
   </div>
@@ -518,6 +526,7 @@ let ED={gastos:0,ingresos:0,deben:0,servicios:0,sus:0,med:0,citas:0,notas:0};
 let D={gastos:[],ingresos:[],deben:[],servicios:[],sus:[],notas:[],cortes:[],lastCut:0,medicinas:[],citas:[],tomas:{},avisMed:{},autoBk:{on:0,last:0}};
 let MEDICINA_FOTOS={frontal:null,trasera:null};
 const MEDICINA_FOTO_DIR='medicinas';
+let PRIV_WARNED=false;
 
 function escapeHtml(value){
   const text = String(value ?? '');
@@ -740,6 +749,8 @@ function cargar(){try{const r=localStorage.getItem('finanzasAR');if(r)D=Object.a
     const fotos=(m.fotos && typeof m.fotos==='object') ? m.fotos : {frontal:null,trasera:null};
     return {...m,fotos:{frontal:sanitizeFotoReferencia(fotos.frontal),trasera:sanitizeFotoReferencia(fotos.trasera)}};
   });
+  if(!D.privacidad)D.privacidad={blockShots:0};
+  D.privacidad.blockShots=D.privacidad.blockShots?1:0;
   if(!D.tomas)D.tomas={};if(!D.avisMed)D.avisMed={};if(!D.autoBk)D.autoBk={on:0,last:0};
   const lim=new Date();lim.setDate(lim.getDate()-90);const limS=lim.toISOString().split('T')[0];
   [D.tomas,D.avisMed].forEach(o=>{Object.keys(o).forEach(k=>{if(k<limS)delete o[k];});});
@@ -909,6 +920,44 @@ function cancelarAviso(id){const n=D.notas.find(x=>x.id===id);if(!n)return;
 
 /* ================= NOTIFICACIONES NATIVAS (Capacitor) ================= */
 const CapPlugins = (window.Capacitor && window.Capacitor.Plugins) ? window.Capacitor.Plugins : {};
+
+function getPrivacyPlugin(){
+  return CapPlugins.PrivacyScreen || null;
+}
+function getPrivacyConfig(){
+  const blockShots=!!(D.privacidad && D.privacidad.blockShots);
+  return {android:{dimBackground:true,preventScreenshots:blockShots,privacyModeOnActivityHidden:'splash'}};
+}
+async function aplicarPrivacidadVisual(showError){
+  const isAndroid=window.Capacitor&&typeof window.Capacitor.getPlatform==='function'&&window.Capacitor.getPlatform()==='android';
+  const PS=getPrivacyPlugin();
+  if(!PS||typeof PS.enable!=='function'){
+    if(showError && isAndroid && !PRIV_WARNED){
+      PRIV_WARNED=true;
+      alert('⚠️ Protección visual no disponible (PSV-00). FinClaro seguirá funcionando normal.');
+    }
+    return false;
+  }
+  try{
+    await PS.enable(getPrivacyConfig());
+    return true;
+  }catch(e){
+    console.error('Error de PrivacyScreen',e);
+    if(showError && !PRIV_WARNED){
+      PRIV_WARNED=true;
+      alert('⚠️ Protección visual no disponible (PSV-01). FinClaro seguirá funcionando normal.');
+    }
+    return false;
+  }
+}
+function setBloqCapturas(){
+  const t=$('capShotToggle');
+  if(!t)return;
+  if(!D.privacidad)D.privacidad={blockShots:0};
+  D.privacidad.blockShots=t.checked?1:0;
+  persistir();
+  aplicarPrivacidadVisual(true);
+}
 
 /* ---- Botón "Atrás" de Android ---- */
 if(CapPlugins.App){
@@ -1595,6 +1644,8 @@ cargar();procesarCortes();hoy();pintar();chequearAvisos();
 if(document.body.classList.contains('dark'))$('temaBtn').textContent='☀️';
 $('autoBkSel').value=String(D.autoBk.on||0);
 $('autoBkInfo').style.display=D.autoBk.on?'block':'none';
+if($('capShotToggle'))$('capShotToggle').checked=!!(D.privacidad&&D.privacidad.blockShots);
+aplicarPrivacidadVisual(true);
 pedirPermisoNativo().then(sincronizarTodasNotifs);
 </script>
   <div class="foto-modal" id="medFotoModal" aria-modal="true" role="dialog" aria-labelledby="medFotoModalTitle">
